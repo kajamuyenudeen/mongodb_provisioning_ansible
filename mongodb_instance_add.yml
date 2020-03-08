@@ -1,0 +1,23 @@
+---
+-
+  connection: local
+  gather_facts: false
+  hosts: 127.0.0.1
+  tasks:
+    - name: "Generate SSL key"
+      shell: openssl rand -base64 755
+      register: ssl_key
+
+    - name: "Save key file"
+      local_action:
+        copy content={{ ssl_key.stdout }} dest="{{ playbook_dir }}/roles/mongodb/templates/mongokey.j2" owner="oprroot" group="oprroot"
+
+- name: MongoDB installation
+  hosts: hosts
+  become: yes
+  become_method: sudo
+  serial: 4
+  tasks:
+  - include_role:
+      name: mongodb
+      tasks_from: main_instance.yml
